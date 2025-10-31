@@ -10,6 +10,40 @@ Aplicación web de simulador de drones desarrollada con React y Vite, utilizando
 - Configuración de Docker para producción y desarrollo
 - ESLint para calidad de código
 
+## ☁️ GitHub Codespaces
+
+¡Sí! Puedes ejecutar todo desde GitHub Codespaces. Codespaces viene preinstalado con Node.js, npm y Docker.
+
+### Desarrollo Local en Codespaces
+
+```bash
+# Instalar dependencias
+npm install
+
+# Iniciar servidor de desarrollo
+npm run dev
+```
+
+El puerto 5173 se reenviará automáticamente. Codespaces te mostrará un mensaje para abrir la aplicación en el navegador.
+
+### Docker en Codespaces
+
+Docker está disponible en Codespaces. Puedes usar todos los comandos de Docker:
+
+```bash
+# Con docker-compose (Producción)
+docker-compose up simulador-drones
+
+# Con docker-compose (Desarrollo)
+docker-compose up dev
+
+# O construir manualmente
+docker build -t simulador-drones .
+docker run -p 3000:80 simulador-drones
+```
+
+Los puertos 3000 y 5173 se reenviarán automáticamente cuando ejecutes los contenedores.
+
 ## 📦 Instalación Local
 
 ### Prerrequisitos
