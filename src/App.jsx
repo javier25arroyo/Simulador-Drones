@@ -168,24 +168,78 @@ function App() {
   const [showGrid, setShowGrid] = useState(true)
   const [animationSpeed, setAnimationSpeed] = useState(0.01)
   const [showTrails, setShowTrails] = useState(true)
+  const [densityMultiplier, setDensityMultiplier] = useState(1) // NUEVO: 1x, 2x, 3x, 4x
   
   const FIGURES = mode === '2D' ? FIGURES_2D : FIGURES_3D
   const figure = FIGURES[selectedFigure]
-  const numDrones = figure.points.length
   
-  // Posiciones iniciales en cuadrícula
+  // Generar más drones duplicando y desplazando ligeramente los puntos
+  const generateDenseDrones = (basePoints, multiplier) => {
+    if (multiplier === 1) return basePoints
+    
+    const denseDrones = []
+    const offset = 0.15 // Pequeño desplazamiento para que se vean distintos
+    
+    basePoints.forEach(point => {
+      // Agregar el punto original
+      denseDrones.push([...point])
+      
+      // Agregar puntos adicionales alrededor
+      if (multiplier >= 2) {
+        if (mode === '2D') {
+          denseDrones.push([point[0] + offset, point[1]])
+          denseDrones.push([point[0], point[1] + offset])
+        } else {
+          denseDrones.push([point[0] + offset, point[1], point[2]])
+          denseDrones.push([point[0], point[1] + offset, point[2]])
+        }
+      }
+      
+      if (multiplier >= 3) {
+        if (mode === '2D') {
+          denseDrones.push([point[0] - offset, point[1]])
+          denseDrones.push([point[0], point[1] - offset])
+        } else {
+          denseDrones.push([point[0] - offset, point[1], point[2]])
+          denseDrones.push([point[0], point[1], point[2] + offset])
+        }
+      }
+      
+      if (multiplier >= 4) {
+        if (mode === '2D') {
+          denseDrones.push([point[0] + offset, point[1] + offset])
+          denseDrones.push([point[0] - offset, point[1] - offset])
+        } else {
+          denseDrones.push([point[0], point[1], point[2] - offset])
+          denseDrones.push([point[0] + offset, point[1] + offset, point[2]])
+        }
+      }
+    })
+    
+    return denseDrones
+  }
+  
+  const finalPositions = generateDenseDrones(figure.points, densityMultiplier)
+  const numDrones = finalPositions.length
+  
+  // Posiciones iniciales en cuadrícula expandida
   const initialPositions = mode === '2D' 
-    ? Array.from({ length: numDrones }, (_, i) => [
-        (i % 3) * 1.5,
-        Math.floor(i / 3) * 1.5
-      ])
-    : Array.from({ length: numDrones }, (_, i) => [
-        (i % 3) * 1.5,
-        Math.floor(i / 3) * 1.5,
-        0
-      ])
+    ? Array.from({ length: numDrones }, (_, i) => {
+        const cols = Math.ceil(Math.sqrt(numDrones))
+        return [
+          (i % cols) * 1.2,
+          Math.floor(i / cols) * 1.2
+        ]
+      })
+    : Array.from({ length: numDrones }, (_, i) => {
+        const cols = Math.ceil(Math.sqrt(numDrones))
+        return [
+          (i % cols) * 1.2,
+          Math.floor(i / cols) * 1.2,
+          0
+        ]
+      })
   
-  const finalPositions = figure.points
   const displacements = calculateDisplacements(initialPositions, finalPositions)
   const rank = calculateRank(displacements)
   const totalEnergy = displacements.reduce((sum, d) => sum + magnitude(d), 0)
@@ -638,6 +692,30 @@ function App() {
                 value={animationSpeed}
                 onChange={(e) => setAnimationSpeed(parseFloat(e.target.value))}
               />
+            </label>
+          </div>
+
+          <div className="density-control">
+            <label>
+              <span>💫 Densidad de Drones: {numDrones} drones ({densityMultiplier}x)</span>
+              <input
+                type="range"
+                min="1"
+                max="4"
+                step="1"
+                value={densityMultiplier}
+                onChange={(e) => {
+                  setDensityMultiplier(parseInt(e.target.value))
+                  setProgress(0)
+                  setIsAnimating(false)
+                }}
+              />
+              <div className="density-labels">
+                <span className={densityMultiplier === 1 ? 'active' : ''}>Básico</span>
+                <span className={densityMultiplier === 2 ? 'active' : ''}>Medio</span>
+                <span className={densityMultiplier === 3 ? 'active' : ''}>Denso</span>
+                <span className={densityMultiplier === 4 ? 'active' : ''}>Ultra</span>
+              </div>
             </label>
           </div>
 
