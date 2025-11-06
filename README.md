@@ -15,13 +15,15 @@ Aplicación web interactiva de simulador de drones desarrollada con React y Vite
 
 ### 🎨 UI/UX Mejorada
 - Header con gradientes animados y efectos shimmer
+- Barra de estado inteligente con resumen de la simulación
 - Selector de modo intuitivo entre 2D y 3D
-- Controles de velocidad de animación
+- Controles de velocidad de animación y densidad
 - Toggles para activar/desactivar cuadrícula y vectores
 - Barra de progreso con porcentaje visible
+- Tarjeta de consejos rápidos para nuevos usuarios
 - Botón de exportación a JSON
 - Tema oscuro premium con gradientes
-- Diseño totalmente responsive
+- Diseño totalmente responsive y optimizado para pantallas amplias
 
 ### 📐 Figuras 2D
 - ⭐ Estrella (5 drones)
@@ -42,7 +44,8 @@ Aplicación web interactiva de simulador de drones desarrollada con React y Vite
 - Determinación del rango de la matriz
 - Identificación de la dimensión del subespacio
 - Cálculo de energía total del sistema
-- Visualización de todos los vectores con sus magnitudes
+- Visualización de todos los vectores con sus magnitudes en notación \LaTeX
+- Interpretaciones contextuales del rango y el espacio vectorial
 - Exportación de datos en formato JSON
 
 ### 🎯 Interactividad 3D
@@ -52,10 +55,16 @@ Aplicación web interactiva de simulador de drones desarrollada con React y Vite
 - **Ejes visuales**: X (rojo), Y (verde), Z (azul)
 - **Ordenamiento por profundidad**: Renderizado correcto en 3D
 
+### 🧭 Panel de Estado y Guía Contextual
+- **Estado dinámico**: Indicadores para ejecución, pausa o finalización
+- **Resumen instantáneo**: Progreso, energía total y figura activa
+- **Modo activo**: Identificación rápida del espacio vectorial seleccionado
+- **Consejos rápidos**: Recomendaciones interactivas para sacar el máximo provecho
+
 ## 🚀 Inicio Rápido
 
 ### Prerrequisitos
-- Node.js 20 o superior
+- Node.js 20.19 o superior (requerido por Vite 7)
 - npm 10 o superior
 
 ### Instalación
@@ -73,8 +82,8 @@ npm install --include=dev
 # Iniciar servidor de desarrollo
 npm run dev
 
-# Abrir en el navegador
-http://localhost:5173/
+# Abrir en el navegador (ruta base configurada en Vite)
+http://localhost:5173/Simulador-Drones/
 ```
 
 ## 📦 Scripts Disponibles
@@ -132,6 +141,7 @@ Ver `PRACTICA.md` para la guía completa de la práctica académica.
 - **React 19**: Biblioteca UI
 - **Vite 7**: Build tool ultra rápido
 - **Lucide React**: Iconos modernos
+- **KaTeX + react-katex**: Renderizado matemático en tiempo real
 - **Canvas API**: Renderizado 2D/3D
 - **Docker**: Containerización
 - **Nginx**: Servidor web en producción
@@ -146,6 +156,7 @@ simulador-drones/
 │   ├── main.jsx         # Punto de entrada
 │   └── assets/          # Recursos estáticos
 ├── public/
+│   ├── favicon2.ico
 │   └── Práctica_Espacios vectoriales.pdf
 ├── Dockerfile           # Configuración Docker
 ├── docker-compose.yml   # Orquestación
@@ -235,8 +246,8 @@ Este proyecto está bajo la Licencia MIT - ver el archivo `LICENSE` para detalle
 
 ## 👥 Autores
 
-- Desarrollador Principal - [Tu Nombre]
-- Práctica Académica - [Universidad/Institución]
+- Desarrollador Principal - [Javier Pérez Arroyo]
+- Práctica Académica - [Universidad Cenfotec]
 
 ## 🙏 Agradecimientos
 
@@ -246,9 +257,8 @@ Este proyecto está bajo la Licencia MIT - ver el archivo `LICENSE` para detalle
 
 ## 📞 Soporte
 
-- 📧 Email: tu-email@example.com
+- 📧 Email: javier25arojas@gmail.com
 - 🐛 Issues: [GitHub Issues](https://github.com/tu-usuario/Simulador-Drones/issues)
-- 📖 Documentación: `PRACTICA.md`
 
 ## 🔮 Roadmap Futuro
 
