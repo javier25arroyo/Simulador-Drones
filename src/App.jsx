@@ -158,6 +158,8 @@ function magnitude(vector) {
 
 function App() {
   const canvasRef = useRef(null)
+  const wrapperRef = useRef(null)
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 800 })
   const [mode, setMode] = useState('2D') // '2D' or '3D'
   const [selectedFigure, setSelectedFigure] = useState('star')
   const [isAnimating, setIsAnimating] = useState(false)
@@ -261,42 +263,98 @@ function App() {
   const formatMagnitudeLatex = (vector, index) => `\\left\\lVert \\vec{d}_{${index + 1}} \\right\\rVert = ${magnitude(vector).toFixed(2)}`
 
   useEffect(() => {
+    const wrapper = wrapperRef.current
+    if (!wrapper) return
+
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        setCanvasDimensions(prev => {
+          const next = {
+            width: Math.max(Math.round(width), 200),
+            height: Math.max(Math.round(height), 200)
+          }
+          if (prev.width === next.width && prev.height === next.height) return prev
+          return next
+        })
+      }
+    })
+
+    observer.observe(wrapper)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    
+
+    const { width, height } = canvasDimensions
+    if (width <= 0 || height <= 0) return
+
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width
+      canvas.height = height
+    }
+
     const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
     const centerX = canvas.width / 2
     const centerY = canvas.height / 2
-    const scale = mode === '2D' ? 80 : 50
+    const gridRange = 5
+    const minDimension = Math.min(canvas.width, canvas.height)
+    const padding = minDimension * 0.08
+    const usableWidth = Math.max(canvas.width - padding * 2, 120)
+    const usableHeight = Math.max(canvas.height - padding * 2, 120)
+    const scale2D = Math.max(Math.min(usableWidth, usableHeight) / gridRange, 18)
+    const offsetX = (canvas.width - gridRange * scale2D) / 2
+    const offsetY = (canvas.height - gridRange * scale2D) / 2
+    const scale3D = Math.max(minDimension / 12, 28)
     
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       
       if (mode === '2D') {
-        draw2D(ctx, scale, 50, 50)
+        draw2D(ctx, {
+          scale: scale2D,
+          offsetX,
+          offsetY,
+          gridRange
+        })
       } else {
-        draw3D(ctx, centerX, centerY, scale)
+        draw3D(ctx, centerX, centerY, scale3D)
       }
     }
     
-    function draw2D(ctx, scale, offsetX, offsetY) {
+    function draw2D(ctx, { scale, offsetX, offsetY, gridRange }) {
       // Dibujar cuadrícula
       if (showGrid) {
         ctx.strokeStyle = '#333'
         ctx.lineWidth = 0.5
-        for (let i = 0; i <= 6; i++) {
+        for (let i = 0; i <= gridRange; i++) {
           ctx.beginPath()
           ctx.moveTo(offsetX, offsetY + i * scale)
-          ctx.lineTo(offsetX + 6 * scale, offsetY + i * scale)
+          ctx.lineTo(offsetX + gridRange * scale, offsetY + i * scale)
           ctx.stroke()
           
           ctx.beginPath()
           ctx.moveTo(offsetX + i * scale, offsetY)
-          ctx.lineTo(offsetX + i * scale, offsetY + 6 * scale)
+          ctx.lineTo(offsetX + i * scale, offsetY + gridRange * scale)
           ctx.stroke()
         }
       }
       
+      const toCanvasPoint = (x, y) => ([
+        offsetX + x * scale,
+        offsetY + (gridRange - y) * scale
+      ])
+
+      const initialRadius = Math.max(scale * 0.05, 4)
+      const finalRadius = Math.max(scale * 0.07, 6)
+      const droneRadius = Math.max(scale * 0.1, 8)
+      const haloRadius = droneRadius + Math.max(scale * 0.06, 4)
+      const arrowLength = Math.max(scale * 0.25, 12)
+
       // Calcular posiciones actuales según progreso
       const currentPositions = initialPositions.map((init, i) => {
         const final = finalPositions[i]
@@ -310,12 +368,14 @@ function App() {
       if (showTrails) {
         initialPositions.forEach((init, i) => {
           const final = finalPositions[i]
+          const [startX, startY] = toCanvasPoint(init[0], init[1])
+          const [endX, endY] = toCanvasPoint(final[0], final[1])
           ctx.strokeStyle = 'rgba(100, 108, 255, 0.3)'
           ctx.lineWidth = 1
           ctx.setLineDash([5, 5])
           ctx.beginPath()
-          ctx.moveTo(offsetX + init[0] * scale, offsetY + (5 - init[1]) * scale)
-          ctx.lineTo(offsetX + final[0] * scale, offsetY + (5 - final[1]) * scale)
+          ctx.moveTo(startX, startY)
+          ctx.lineTo(endX, endY)
           ctx.stroke()
           ctx.setLineDash([])
           
@@ -323,26 +383,25 @@ function App() {
           const dx = final[0] - init[0]
           const dy = final[1] - init[1]
           const angle = Math.atan2(dy, dx)
-          const arrowLength = 10
           
           ctx.strokeStyle = 'rgba(100, 108, 255, 0.6)'
           ctx.lineWidth = 2
           ctx.beginPath()
-          ctx.moveTo(offsetX + init[0] * scale, offsetY + (5 - init[1]) * scale)
-          ctx.lineTo(offsetX + final[0] * scale, offsetY + (5 - final[1]) * scale)
+          ctx.moveTo(startX, startY)
+          ctx.lineTo(endX, endY)
           ctx.stroke()
           
           // Punta de flecha
           ctx.beginPath()
-          ctx.moveTo(offsetX + final[0] * scale, offsetY + (5 - final[1]) * scale)
+          ctx.moveTo(endX, endY)
           ctx.lineTo(
-            offsetX + final[0] * scale - arrowLength * Math.cos(angle - Math.PI / 6),
-            offsetY + (5 - final[1]) * scale + arrowLength * Math.sin(angle - Math.PI / 6)
+            endX - arrowLength * Math.cos(angle - Math.PI / 6),
+            endY + arrowLength * Math.sin(angle - Math.PI / 6)
           )
-          ctx.moveTo(offsetX + final[0] * scale, offsetY + (5 - final[1]) * scale)
+          ctx.moveTo(endX, endY)
           ctx.lineTo(
-            offsetX + final[0] * scale - arrowLength * Math.cos(angle + Math.PI / 6),
-            offsetY + (5 - final[1]) * scale + arrowLength * Math.sin(angle + Math.PI / 6)
+            endX - arrowLength * Math.cos(angle + Math.PI / 6),
+            endY + arrowLength * Math.sin(angle + Math.PI / 6)
           )
           ctx.stroke()
         })
@@ -350,32 +409,35 @@ function App() {
       
       // Dibujar posiciones iniciales
       initialPositions.forEach(([x, y]) => {
+        const [cx, cy] = toCanvasPoint(x, y)
         ctx.fillStyle = 'rgba(150, 150, 150, 0.5)'
         ctx.beginPath()
-        ctx.arc(offsetX + x * scale, offsetY + (5 - y) * scale, 4, 0, 2 * Math.PI)
+        ctx.arc(cx, cy, initialRadius, 0, 2 * Math.PI)
         ctx.fill()
       })
       
       // Dibujar posiciones finales
       finalPositions.forEach(([x, y]) => {
+        const [cx, cy] = toCanvasPoint(x, y)
         ctx.fillStyle = 'rgba(255, 100, 100, 0.3)'
         ctx.beginPath()
-        ctx.arc(offsetX + x * scale, offsetY + (5 - y) * scale, 6, 0, 2 * Math.PI)
+        ctx.arc(cx, cy, finalRadius, 0, 2 * Math.PI)
         ctx.fill()
       })
       
       // Dibujar drones en posición actual
       currentPositions.forEach(([x, y]) => {
+        const [cx, cy] = toCanvasPoint(x, y)
         ctx.fillStyle = '#646cff'
         ctx.beginPath()
-        ctx.arc(offsetX + x * scale, offsetY + (5 - y) * scale, 8, 0, 2 * Math.PI)
+        ctx.arc(cx, cy, droneRadius, 0, 2 * Math.PI)
         ctx.fill()
         
         // Efecto de dron
         ctx.strokeStyle = '#646cff'
         ctx.lineWidth = 2
         ctx.beginPath()
-        ctx.arc(offsetX + x * scale, offsetY + (5 - y) * scale, 12, 0, 2 * Math.PI)
+        ctx.arc(cx, cy, haloRadius, 0, 2 * Math.PI)
         ctx.stroke()
       })
     }
@@ -502,7 +564,7 @@ function App() {
     }
     
     draw()
-  }, [progress, selectedFigure, mode, rotation, zoom, showGrid, showTrails, initialPositions, finalPositions])
+  }, [progress, selectedFigure, mode, rotation, zoom, showGrid, showTrails, initialPositions, finalPositions, canvasDimensions])
 
   useEffect(() => {
     if (!isAnimating) return
@@ -685,11 +747,9 @@ function App() {
 
       <div className="main-container">
         <div className="canvas-container">
-          <div className="canvas-wrapper">
+          <div className="canvas-wrapper" ref={wrapperRef}>
             <canvas 
               ref={canvasRef} 
-              width={800} 
-              height={800}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
