@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Play, Pause, RotateCcw, Info, Box, Layers, Download, Sparkles, Grid3x3, Maximize2 } from 'lucide-react'
+import { Play, Pause, RotateCcw, Info, Box, Layers, Download, Sparkles, Grid3x3, Maximize2, Activity, Target, Gauge, Lightbulb } from 'lucide-react'
+import { BlockMath, InlineMath } from 'react-katex'
+import 'katex/dist/katex.min.css'
 import './App.css'
 
 // Figuras predefinidas 2D
@@ -243,6 +245,20 @@ function App() {
   const displacements = calculateDisplacements(initialPositions, finalPositions)
   const rank = calculateRank(displacements)
   const totalEnergy = displacements.reduce((sum, d) => sum + magnitude(d), 0)
+  const simulationStatus = isAnimating ? 'En ejecución' : progress >= 1 ? 'Completada' : 'Detenida'
+  const statusType = isAnimating ? 'running' : progress >= 1 ? 'completed' : 'paused'
+  const progressPercent = (progress * 100).toFixed(0)
+  const densityLabels = ['Básico', 'Medio', 'Denso', 'Ultra']
+  const densityLabel = densityLabels[densityMultiplier - 1] || 'Personalizado'
+  const ModeIcon = mode === '2D' ? Layers : Box
+  const modeLabel = mode === '2D' ? 'Modo 2D' : 'Modo 3D'
+
+  const formatVectorLatex = (vector, index) => {
+    const components = vector.map(value => value.toFixed(2)).join(' \\ ')
+    return `\\vec{d}_{${index + 1}} = \\begin{bmatrix} ${components} \\end{bmatrix}`
+  }
+
+  const formatMagnitudeLatex = (vector, index) => `\\left\\lVert \\vec{d}_{${index + 1}} \\right\\rVert = ${magnitude(vector).toFixed(2)}`
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -622,13 +638,58 @@ function App() {
         </div>
       </header>
 
+      <div className="status-bar">
+        <div className={`status-pill ${statusType}`}>
+          <div className="pill-icon">
+            <Activity size={18} />
+          </div>
+          <div className="pill-content">
+            <span className="pill-label">Simulación</span>
+            <span className="pill-value">{simulationStatus}</span>
+          </div>
+        </div>
+
+        <div className="status-pill neutral">
+          <div className="pill-icon">
+            <Gauge size={18} />
+          </div>
+          <div className="pill-content">
+            <span className="pill-label">Progreso</span>
+            <span className="pill-value">{progressPercent}%</span>
+            <span className="pill-sub">Energía: {totalEnergy.toFixed(1)}</span>
+          </div>
+        </div>
+
+        <div className="status-pill neutral">
+          <div className="pill-icon">
+            <ModeIcon size={18} />
+          </div>
+          <div className="pill-content">
+            <span className="pill-label">Espacio Activo</span>
+            <span className="pill-value">{modeLabel}</span>
+            <span className="pill-sub">Rango: {rank}</span>
+          </div>
+        </div>
+
+        <div className="status-pill neutral">
+          <div className="pill-icon">
+            <Target size={18} />
+          </div>
+          <div className="pill-content">
+            <span className="pill-label">Figura</span>
+            <span className="pill-value">{figure.name}</span>
+            <span className="pill-sub">{numDrones} drones • {densityLabel}</span>
+          </div>
+        </div>
+      </div>
+
       <div className="main-container">
         <div className="canvas-container">
           <div className="canvas-wrapper">
             <canvas 
               ref={canvasRef} 
-              width={580} 
-              height={580}
+              width={800} 
+              height={800}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
@@ -723,6 +784,18 @@ function App() {
             <div className="progress-fill" style={{ width: `${progress * 100}%` }} />
             <span className="progress-text">{(progress * 100).toFixed(0)}%</span>
           </div>
+
+          <div className="tips-card">
+            <div className="tips-header">
+              <Lightbulb size={18} />
+              <span>Consejos rápidos</span>
+            </div>
+            <ul>
+              <li>En modo 3D, arrastra el lienzo para rotar la formación y usa el scroll para acercar o alejar.</li>
+              <li>Activa o desactiva la cuadrícula y los vectores para centrarte en la geometría deseada.</li>
+              <li>Ajusta la densidad para explorar cómo cambia el rango y la energía de la formación.</li>
+            </ul>
+          </div>
         </div>
 
         <div className="info-panel">
@@ -800,13 +873,8 @@ function App() {
               <div className="vector-list">
                 {displacements.map((d, i) => (
                   <div key={i} className="vector-item">
-                    <span className="vector-label">d⃗{i + 1} = </span>
-                    <span className="vector-value">
-                      [{d.map(v => v.toFixed(2)).join(', ')}]
-                    </span>
-                    <span className="magnitude">
-                      ||d⃗|| = {magnitude(d).toFixed(2)}
-                    </span>
+                    <BlockMath math={formatVectorLatex(d, i)} />
+                    <InlineMath math={formatMagnitudeLatex(d, i)} />
                   </div>
                 ))}
               </div>
