@@ -9,27 +9,27 @@ const FIGURES_2D = {
   star: {
     name: 'Estrella',
     icon: '⭐',
-    points: [[2, 4], [3.5, 1.5], [5, 4], [1.5, 2.5], [4.5, 2.5]]
+    points: [[3, 7], [5.5, 2.5], [8, 7], [2.5, 4.5], [7.5, 4.5]]
   },
   triangle: {
     name: 'Triángulo',
     icon: '🔺',
-    points: [[2.5, 4], [1, 1], [4, 1]]
+    points: [[4, 7], [1.5, 2], [6.5, 2]]
   },
   square: {
     name: 'Cuadrado',
     icon: '⬜',
-    points: [[1, 1], [4, 1], [4, 4], [1, 4]]
+    points: [[2, 2], [7, 2], [7, 7], [2, 7]]
   },
   heart: {
     name: 'Corazón',
     icon: '❤️',
-    points: [[2.5, 1], [1.5, 3], [2.5, 4], [3.5, 3], [4, 2]]
+    points: [[4, 2], [2.5, 5], [4, 7], [5.5, 5], [6.5, 3.5]]
   },
   pentagon: {
     name: 'Pentágono',
     icon: '⬠',
-    points: [[2.5, 4], [1, 2.5], [1.5, 0.5], [3.5, 0.5], [4, 2.5]]
+    points: [[4, 7], [1.5, 4.5], [2.5, 1.5], [5.5, 1.5], [6.5, 4.5]]
   }
 }
 
@@ -39,16 +39,16 @@ const FIGURES_3D = {
     name: 'Cubo',
     icon: '🧊',
     points: [
-      [1, 1, 1], [4, 1, 1], [4, 4, 1], [1, 4, 1],
-      [1, 1, 4], [4, 1, 4], [4, 4, 4], [1, 4, 4]
+      [2, 2, 2], [7, 2, 2], [7, 7, 2], [2, 7, 2],
+      [2, 2, 7], [7, 2, 7], [7, 7, 7], [2, 7, 7]
     ]
   },
   pyramid: {
     name: 'Pirámide',
     icon: '🔺',
     points: [
-      [1, 1, 0], [4, 1, 0], [4, 4, 0], [1, 4, 0],
-      [2.5, 2.5, 4]
+      [2, 2, 0], [7, 2, 0], [7, 7, 0], [2, 7, 0],
+      [4.5, 4.5, 7]
     ]
   },
   helix: {
@@ -56,24 +56,24 @@ const FIGURES_3D = {
     icon: '🌀',
     points: Array.from({ length: 8 }, (_, i) => {
       const angle = (i / 8) * Math.PI * 2
-      return [2.5 + 1.5 * Math.cos(angle), 2.5 + 1.5 * Math.sin(angle), i * 0.6]
+      return [4.5 + 2.5 * Math.cos(angle), 4.5 + 2.5 * Math.sin(angle), i * 1.0]
     })
   },
   sphere: {
     name: 'Esfera',
     icon: '⚪',
     points: [
-      [2.5, 2.5, 4], [2.5, 4, 2.5], [2.5, 1, 2.5],
-      [4, 2.5, 2.5], [1, 2.5, 2.5], [2.5, 2.5, 1],
-      [3.5, 3.5, 3], [1.5, 1.5, 3], [3.5, 1.5, 2], [1.5, 3.5, 2]
+      [4.5, 4.5, 7], [4.5, 7, 4.5], [4.5, 2, 4.5],
+      [7, 4.5, 4.5], [2, 4.5, 4.5], [4.5, 4.5, 2],
+      [6, 6, 5.5], [3, 3, 5.5], [6, 3, 4], [3, 6, 4]
     ]
   },
   diamond: {
     name: 'Diamante',
     icon: '💎',
     points: [
-      [2.5, 2.5, 4.5], [1.5, 2.5, 3], [3.5, 2.5, 3],
-      [2.5, 1.5, 3], [2.5, 3.5, 3], [2.5, 2.5, 1.5]
+      [4.5, 4.5, 8], [3, 4.5, 5.5], [6, 4.5, 5.5],
+      [4.5, 3, 5.5], [4.5, 6, 5.5], [4.5, 4.5, 3]
     ]
   }
 }
@@ -231,15 +231,15 @@ function App() {
     ? Array.from({ length: numDrones }, (_, i) => {
         const cols = Math.ceil(Math.sqrt(numDrones))
         return [
-          (i % cols) * 1.2,
-          Math.floor(i / cols) * 1.2
+          (i % cols) * 1.5,
+          Math.floor(i / cols) * 1.5
         ]
       })
     : Array.from({ length: numDrones }, (_, i) => {
         const cols = Math.ceil(Math.sqrt(numDrones))
         return [
-          (i % cols) * 1.2,
-          Math.floor(i / cols) * 1.2,
+          (i % cols) * 1.5,
+          Math.floor(i / cols) * 1.5,
           0
         ]
       })
@@ -301,7 +301,7 @@ function App() {
 
     const centerX = canvas.width / 2
     const centerY = canvas.height / 2
-    const gridRange = 5
+    const gridRange = 10
     const minDimension = Math.min(canvas.width, canvas.height)
     const padding = minDimension * 0.08
     const usableWidth = Math.max(canvas.width - padding * 2, 120)
@@ -445,7 +445,7 @@ function App() {
     function draw3D(ctx, centerX, centerY, scale) {
       // Dibujar ejes 3D
       if (showGrid) {
-        const axisLength = 5
+        const axisLength = 10
         const axes = [
           { points: [[0, 0, 0], [axisLength, 0, 0]], color: '#ff6b6b' }, // X - Rojo
           { points: [[0, 0, 0], [0, axisLength, 0]], color: '#51cf66' }, // Y - Verde
@@ -465,16 +465,16 @@ function App() {
         // Dibujar cuadrícula del suelo
         ctx.strokeStyle = 'rgba(100, 100, 100, 0.2)'
         ctx.lineWidth = 1
-        for (let i = -2; i <= 6; i++) {
+        for (let i = -2; i <= 12; i++) {
           const p1 = project3D([-2, i, 0], rotation, zoom)
-          const p2 = project3D([6, i, 0], rotation, zoom)
+          const p2 = project3D([12, i, 0], rotation, zoom)
           ctx.beginPath()
           ctx.moveTo(centerX + p1[0] * scale, centerY - p1[1] * scale)
           ctx.lineTo(centerX + p2[0] * scale, centerY - p2[1] * scale)
           ctx.stroke()
           
           const p3 = project3D([i, -2, 0], rotation, zoom)
-          const p4 = project3D([i, 6, 0], rotation, zoom)
+          const p4 = project3D([i, 12, 0], rotation, zoom)
           ctx.beginPath()
           ctx.moveTo(centerX + p3[0] * scale, centerY - p3[1] * scale)
           ctx.lineTo(centerX + p4[0] * scale, centerY - p4[1] * scale)
