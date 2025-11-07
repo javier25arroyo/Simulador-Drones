@@ -520,7 +520,7 @@ function App() {
       // Dibujar posiciones iniciales
       initialPositions.forEach((pos) => {
         const proj = project3D(pos, rotation, zoom)
-        const size = 4 * (1 + proj[2] / 10)
+        const size = Math.max(3, 4 * (1 + proj[2] / 10))
         ctx.fillStyle = 'rgba(150, 150, 150, 0.5)'
         ctx.beginPath()
         ctx.arc(centerX + proj[0] * scale, centerY - proj[1] * scale, size, 0, 2 * Math.PI)
@@ -530,7 +530,7 @@ function App() {
       // Dibujar posiciones finales
       finalPositions.forEach((pos) => {
         const proj = project3D(pos, rotation, zoom)
-        const size = 6 * (1 + proj[2] / 10)
+        const size = Math.max(4, 6 * (1 + proj[2] / 10))
         ctx.fillStyle = 'rgba(255, 100, 100, 0.3)'
         ctx.beginPath()
         ctx.arc(centerX + proj[0] * scale, centerY - proj[1] * scale, size, 0, 2 * Math.PI)
@@ -539,8 +539,8 @@ function App() {
       
       // Dibujar drones (ordenados por profundidad para efecto 3D correcto)
       projectedData.forEach(({ pos, projected, depth }) => {
-        const size = 8 * (1 + depth / 10)
-        const outerSize = size + 4
+        const size = Math.max(5, 8 * (1 + depth / 10))
+        const outerSize = size + Math.max(4, size * 0.5)
         
         // Sombra
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
@@ -641,12 +641,19 @@ function App() {
     setIsDragging(false)
   }
   
-  const handleWheel = (e) => {
-    if (mode === '3D') {
-      e.preventDefault()
-      setZoom(prev => Math.max(0.5, Math.min(2, prev - e.deltaY * 0.001)))
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const handleWheel = (event) => {
+      if (mode !== '3D') return
+      event.preventDefault()
+      setZoom(prev => Math.max(0.5, Math.min(2, prev - event.deltaY * 0.001)))
     }
-  }
+
+    canvas.addEventListener('wheel', handleWheel, { passive: false })
+    return () => canvas.removeEventListener('wheel', handleWheel)
+  }, [mode])
   
   const handleExport = () => {
     const data = {
@@ -754,7 +761,6 @@ function App() {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
-              onWheel={handleWheel}
               style={{ 
                 cursor: mode === '3D' ? (isDragging ? 'grabbing' : 'grab') : 'default'
               }}
